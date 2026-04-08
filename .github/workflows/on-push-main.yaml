@@ -45,6 +45,11 @@ jobs:
       aws-region: us-east-2
       write-env-files: true
       timeout-minutes: 34
+      env-vars: |
+        {
+          "SPOT_FEED_BUCKET_NAME": "${{ vars.SPOT_FEED_BUCKET_NAME }}",
+          "SPOT_FEED_SUBSCRIPTION_EXTERNAL_NAME": "${{ vars.SPOT_FEED_SUBSCRIPTION_EXTERNAL_NAME }}"
+        }
 
   version-and-tag:
     name: Version and Tag

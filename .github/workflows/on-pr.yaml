@@ -48,6 +48,11 @@ jobs:
       aws-account-id: "034489662075"
       aws-region: us-east-2
       write-env-files: true
+      env-vars: |
+        {
+          "SPOT_FEED_BUCKET_NAME": "${{ vars.SPOT_FEED_BUCKET_NAME }}",
+          "SPOT_FEED_SUBSCRIPTION_EXTERNAL_NAME": "${{ vars.SPOT_FEED_SUBSCRIPTION_EXTERNAL_NAME }}"
+        }
 
   publish:
     needs:
