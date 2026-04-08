@@ -2,10 +2,8 @@
 # ================================================
 # Tests S3 bucket and SpotDatafeedSubscription creation with optional import.
 #
-# Import Cycle Testing:
-# 1. First run: Create resources with empty externalNames (creates new in AWS)
-# 2. Future runs: Resources already exist, managed via orphan policy
-# 3. Delete claim - resources persist in AWS (no Delete policy)
+# First run creates resources in AWS. Future runs manage the existing resources
+# via orphan policy (no Delete). Resources persist in AWS after claim deletion.
 #
 # Get resource external names after first run:
 #   kubectl get bucket -l crossplane.io/composite=e2e-spot-feed \
@@ -26,25 +24,27 @@ _awsCreds = base64.encode(_awsCredsRaw)
 
 # AWS account ID and region for testing
 _testAccountId = file.read("env/AWS_ACCOUNT_ID").strip()
-_testRegion = file.read("env/AWS_REGION").strip() if file.read("env/AWS_REGION") else "us-east-1"
+_testRegion = file.read("env/AWS_REGION").strip()
 
 # Orphan policy - no Delete means resources persist in AWS after claim deletion
 _orphan = ["Create", "Observe", "Update", "LateInitialize"]
 
 # =============================================================================
-# External names for import (leave empty for create, populate for import)
+# External names for import
 # =============================================================================
-# Bucket: e2e-spot-feed-spot-feed (matches default naming)
-_bucket_external_name = file.read("env/BUCKET_EXTERNAL_NAME").strip() if file.read("env/BUCKET_EXTERNAL_NAME") else ""
+# Bucket external name matches the default bucket naming: {name}-spot-feed
+_test_name = "e2e-spot-feed"
+_bucket_external_name = _test_name + "-spot-feed"
 
-# Subscription: typically the bucket name
-_subscription_external_name = file.read("env/SUBSCRIPTION_EXTERNAL_NAME").strip() if file.read("env/SUBSCRIPTION_EXTERNAL_NAME") else ""
+# Subscription external name — AWS only allows one per account, so after first
+# run this is stable. On first run, leave empty to create; on subsequent runs
+# the orphaned subscription already exists and gets adopted.
+# _subscription_external_name = ""
+_subscription_external_name = _bucket_external_name
 
 # =============================================================================
 # Test SpotFeed
 # =============================================================================
-_test_name = "e2e-spot-feed"
-
 _items = [
     metav1alpha1.E2ETest {
         metadata.name = "spotfeed-e2e"
