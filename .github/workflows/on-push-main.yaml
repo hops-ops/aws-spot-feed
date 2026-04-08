@@ -44,7 +44,7 @@ jobs:
       aws-account-id: "034489662075"
       aws-region: us-east-2
       write-env-files: true
-      timeout-minutes: 33
+      timeout-minutes: 34
 
   version-and-tag:
     name: Version and Tag
