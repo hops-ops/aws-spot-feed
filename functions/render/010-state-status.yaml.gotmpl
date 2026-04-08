@@ -1,0 +1,12 @@
+# code: language=yaml
+#
+# Compute status from observed state
+#
+
+{{- $allReady := and $state.observed.bucket.ready $state.observed.subscription.ready }}
+
+{{- $state = set $state "status" (dict
+  "ready" $allReady
+  "bucketName" $state.bucketName
+  "bucketArn" ($state.observed.bucket.arn | default "Pending")
+) }}

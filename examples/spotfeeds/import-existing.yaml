@@ -1,0 +1,18 @@
+apiVersion: aws.hops.ops.com.ai/v1alpha1
+kind: SpotFeed
+metadata:
+  name: existing-spot-feed
+  namespace: default
+spec:
+  accountId: "123456789012"
+  region: us-east-1
+  bucketName: existing-spot-bucket
+  managementPolicies:
+  - Create
+  - Update
+  - Observe
+  - LateInitialize
+  bucket:
+    externalName: existing-spot-bucket
+  subscription:
+    externalName: existing-spot-bucket

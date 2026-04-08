@@ -1,0 +1,53 @@
+# code: language=yaml
+#
+# AWS Spot Datafeed Subscription
+#
+
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SpotDatafeedSubscription
+metadata:
+  name: {{ $state.resourceName }}
+  annotations:
+    {{ setResourceNameAnnotation "spot-datafeed-subscription" }}
+    {{- if $state.subscription.externalName }}
+    crossplane.io/external-name: {{ $state.subscription.externalName }}
+    {{- end }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    region: {{ $state.region }}
+    bucket: {{ $state.bucketName }}
+    {{- if $state.prefix }}
+    prefix: {{ $state.prefix }}
+    {{- end }}
+  providerConfigRef:
+    name: {{ $state.providerConfigRef.name }}
+    kind: {{ $state.providerConfigRef.kind }}
+
+# ==============================================================================
+# Usage: Delete subscription before bucket
+# ==============================================================================
+{{- if and $state.observed.bucket.ready $state.observed.subscription.ready }}
+---
+apiVersion: protection.crossplane.io/v1beta1
+kind: Usage
+metadata:
+  name: {{ $state.resourceName }}-delete-subscription-before-bucket
+  annotations:
+    {{ setResourceNameAnnotation "usage-delete-subscription-before-bucket" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  replayDeletion: true
+  of:
+    apiVersion: s3.aws.m.upbound.io/v1beta1
+    kind: Bucket
+    resourceRef:
+      name: {{ $state.resourceName }}
+  by:
+    apiVersion: ec2.aws.m.upbound.io/v1beta1
+    kind: SpotDatafeedSubscription
+    resourceRef:
+      name: {{ $state.resourceName }}
+{{- end }}

@@ -1,0 +1,70 @@
+# code: language=yaml
+#
+# Initialize $state with spec defaults
+#
+
+{{- $xr := getCompositeResource . }}
+{{- $spec := $xr.spec | default dict }}
+{{- $metadata := $xr.metadata | default dict }}
+
+# ==============================================================================
+# Core defaults
+# ==============================================================================
+{{- $name := $metadata.name | default "spot-feed" }}
+{{- $accountId := $spec.accountId }}
+{{- $managementPolicies := $spec.managementPolicies | default (list "*") }}
+
+# Provider config
+{{- $providerConfigRef := $spec.providerConfigRef | default dict }}
+{{- $providerConfigRef = dict
+  "name" ($providerConfigRef.name | default "default")
+  "kind" ($providerConfigRef.kind | default "ProviderConfig")
+}}
+
+# Labels
+{{- $defaultLabels := dict
+  "hops.ops.com.ai/managed" "true"
+  (printf "hops.ops.com.ai/%s" (lower $xr.kind)) $name
+}}
+{{- $labels := merge (dict) $defaultLabels ($spec.labels | default dict) }}
+
+# Tags
+{{- $defaultTags := dict
+  "hops.ops.com.ai/managed" "true"
+  "hops.ops.com.ai/spotfeed" $name
+}}
+{{- $tags := merge (dict) $defaultTags ($spec.tags | default dict) }}
+
+# ==============================================================================
+# Effective spec
+# ==============================================================================
+{{- $bucketName := $spec.bucketName | default (printf "%s-spot-feed" $name) }}
+{{- $prefix := $spec.prefix | default "" }}
+{{- $region := $spec.region }}
+
+# Import settings
+{{- $bucket := $spec.bucket | default dict }}
+{{- $subscription := $spec.subscription | default dict }}
+
+# ==============================================================================
+# Initialize $state
+# ==============================================================================
+{{- $state := dict
+  "name" $name
+  "managementPolicies" $managementPolicies
+  "providerConfigRef" $providerConfigRef
+  "labels" $labels
+  "tags" $tags
+  "accountId" $accountId
+  "region" $region
+  "bucketName" $bucketName
+  "prefix" $prefix
+  "bucket" (dict
+    "externalName" ($bucket.externalName | default "")
+  )
+  "subscription" (dict
+    "externalName" ($subscription.externalName | default "")
+  )
+  "observed" (dict)
+  "status" (dict)
+}}

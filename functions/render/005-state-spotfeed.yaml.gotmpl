@@ -1,0 +1,6 @@
+# code: language=yaml
+#
+# Compute derived resource names
+#
+
+{{- $state = set $state "resourceName" (printf "%s-spot-feed" $state.name) }}

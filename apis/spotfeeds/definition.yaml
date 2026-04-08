@@ -1,0 +1,106 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: spotfeeds.aws.hops.ops.com.ai
+spec:
+  group: aws.hops.ops.com.ai
+  names:
+    kind: SpotFeed
+    plural: spotfeeds
+  scope: Namespaced
+  defaultCompositeDeletePolicy: Foreground
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    served: true
+    schema:
+      openAPIV3Schema:
+        description: SpotFeed creates an S3 bucket and SpotDatafeedSubscription for accurate spot instance pricing. One per AWS account.
+        type: object
+        properties:
+          spec:
+            description: SpotFeedSpec defines the desired state.
+            type: object
+            properties:
+              accountId:
+                description: AWS account ID. Used for naming and labels.
+                type: string
+              region:
+                description: AWS region for the S3 bucket and spot data feed.
+                type: string
+              bucketName:
+                description: S3 bucket name for spot feed data. Defaults to {name}-spot-feed.
+                type: string
+              prefix:
+                description: Optional prefix for spot feed data within the S3 bucket.
+                type: string
+              providerConfigRef:
+                description: Reference to the AWS ProviderConfig. Defaults to "default".
+                type: object
+                properties:
+                  name:
+                    description: Name of the AWS ProviderConfig.
+                    type: string
+                    default: default
+                  kind:
+                    description: Kind of the ProviderConfig. Defaults to ProviderConfig.
+                    type: string
+                    default: ProviderConfig
+              managementPolicies:
+                description: Management policies for all composed resources. Defaults to ["*"].
+                type: array
+                items:
+                  type: string
+                  enum:
+                  - "*"
+                  - Create
+                  - Observe
+                  - Update
+                  - Delete
+                  - LateInitialize
+                default:
+                - "*"
+              labels:
+                description: Custom labels applied to all managed resources.
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              tags:
+                description: Custom tags applied to AWS resources.
+                type: object
+                additionalProperties:
+                  type: string
+                x-kubernetes-preserve-unknown-fields: true
+              bucket:
+                description: Import settings for an existing S3 bucket.
+                type: object
+                properties:
+                  externalName:
+                    description: External name for importing an existing S3 bucket.
+                    type: string
+              subscription:
+                description: Import settings for an existing SpotDatafeedSubscription.
+                type: object
+                properties:
+                  externalName:
+                    description: External name for importing an existing subscription.
+                    type: string
+            required:
+            - accountId
+            - region
+          status:
+            description: SpotFeedStatus defines the observed state.
+            type: object
+            properties:
+              ready:
+                description: Overall readiness.
+                type: boolean
+              bucketName:
+                description: Name of the S3 bucket receiving spot feed data.
+                type: string
+              bucketArn:
+                description: ARN of the S3 bucket.
+                type: string
+        required:
+        - spec

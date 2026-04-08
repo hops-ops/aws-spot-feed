@@ -1,0 +1,71 @@
+# code: language=yaml
+#
+# S3 Bucket for spot data feed
+#
+
+---
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: Bucket
+metadata:
+  name: {{ $state.resourceName }}
+  annotations:
+    {{ setResourceNameAnnotation "bucket" }}
+    crossplane.io/external-name: {{ $state.bucket.externalName | default $state.bucketName }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    region: {{ $state.region }}
+    tags:
+      {{ $state.tags | toYaml | nindent 6 }}
+  providerConfigRef:
+    name: {{ $state.providerConfigRef.name }}
+    kind: {{ $state.providerConfigRef.kind }}
+
+# ==============================================================================
+# Allow ACLs for spot data feed service writes
+# ==============================================================================
+---
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: BucketOwnershipControls
+metadata:
+  name: {{ $state.resourceName }}
+  annotations:
+    {{ setResourceNameAnnotation "bucket-ownership-controls" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    region: {{ $state.region }}
+    bucketRef:
+      name: {{ $state.resourceName }}
+    rule:
+      objectOwnership: BucketOwnerPreferred
+  providerConfigRef:
+    name: {{ $state.providerConfigRef.name }}
+    kind: {{ $state.providerConfigRef.kind }}
+
+# ==============================================================================
+# Block all public access
+# ==============================================================================
+---
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: BucketPublicAccessBlock
+metadata:
+  name: {{ $state.resourceName }}
+  annotations:
+    {{ setResourceNameAnnotation "bucket-public-access-block" }}
+  labels: {{ $state.labels | toJson }}
+spec:
+  managementPolicies: {{ $state.managementPolicies | toJson }}
+  forProvider:
+    region: {{ $state.region }}
+    bucketRef:
+      name: {{ $state.resourceName }}
+    blockPublicAcls: true
+    blockPublicPolicy: true
+    ignorePublicAcls: true
+    restrictPublicBuckets: true
+  providerConfigRef:
+    name: {{ $state.providerConfigRef.name }}
+    kind: {{ $state.providerConfigRef.kind }}
